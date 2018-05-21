@@ -1,5 +1,5 @@
 import * as os from 'os';
-const path = require('path');
+import path = require('path');
 const findParentDir = require('find-parent-dir');
 const splitLines = require('split-lines');
 import * as fs from 'fs';

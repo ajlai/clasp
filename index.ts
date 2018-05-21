@@ -26,22 +26,21 @@ import * as fs from 'fs';
 import { google } from 'googleapis';
 import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import * as mkdirp from 'mkdirp';
-const open = require('open');
-const path = require('path');
-const commander = require('commander');
+import open = require('open');
+import path = require('path');
+import commander = require('commander');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
 const logging = require('@google-cloud/logging');
-const chalk = require('chalk');
+import chalk from 'chalk';
 const { prompt } = require('inquirer');
 import * as pluralize from 'pluralize';
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
     getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
-    saveProjectId, manifestExists } from './src/utils.js';
-import { oauth2Client, getAPICredentials,
-    authorizeWithLocalhost, authorizeWithoutLocalhost } from './src/auth.js';
-import { LOG } from './src/commands.js';
+    saveProjectId, manifestExists } from './src/utils';
+import { oauth2Client, getAPICredentials, authorize } from './src/auth';
+import { LOG } from './src/commands';
 // An Apps Script API File
 interface AppsScriptFile {
   name: string;
@@ -62,39 +61,6 @@ const script = google.script({
   version: 'v1',
   auth: oauth2Client,
 });
-
-/**
- * Requests authorization to manage Apps Script projects.
- * @param {boolean} useLocalhost True if a local HTTP server should be run
- *     to handle the auth response. False if manual entry used.
- */
-function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
-  // const codes = oauth2Client.generateCodeVerifier();
-  // See https://developers.google.com/identity/protocols/OAuth2InstalledApp#step1-code-verifier
-  const options = {
-    access_type: 'offline',
-    scope: [
-      'https://www.googleapis.com/auth/script.deployments',
-      'https://www.googleapis.com/auth/script.projects',
-      'https://www.googleapis.com/auth/drive.metadata.readonly',
-      'https://www.googleapis.com/auth/script.webapp.deploy',
-    ],
-    // code_challenge_method: 'S256',
-    // code_challenge: codes.codeChallenge,
-  };
-  const authCode: Promise<string> = useLocalhost ?
-    authorizeWithLocalhost(options) :
-    authorizeWithoutLocalhost(options);
-  authCode.then((code: string) => {
-    return new Promise((res: Function, rej: Function) => {
-      oauth2Client.getToken(code).then((token) => res(token.tokens));
-    });
-  }).then((token: object) => {
-    writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token);
-  })
-    .then(() => console.log(LOG.AUTH_SUCCESSFUL))
-    .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
-}
 
 /**
  * Recursively finds all files that are part of the current project, and those that are ignored
@@ -337,22 +303,18 @@ commander
       if (!scriptId) {
         getAPICredentials(async () => {
           const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
-          const { data } = await drive.files.list({
+          const { data: { files } } = await drive.files.list({
             pageSize: 10,
             fields: 'files(id, name)',
             q: "mimeType='application/vnd.google-apps.script'",
           });
-          const files = data.files;
-          const fileIds = [];
-          if (files.length) {
-            files.map((file: any) => {
-              fileIds.push(`${file.name}`.padEnd(20) + ` - (${file.id})`);
-            });
+          if (files.length > 0) {
+            const choices = files.map((file) => `${file.name}`.padEnd(20) + ` - (${file.id})`);
             await prompt([{
               type : 'list',
               name : 'scriptId',
               message : 'Clone which script? ',
-              choices : fileIds,
+              choices : choices,
             }]).then((answers) => {
               checkIfOnline();
               spinner.setSpinnerTitle(LOG.CLONING);
@@ -845,7 +807,7 @@ commander
  * All other commands are given a help message.
  */
 commander
-  .command('*', { isDefault: true })
+  .command('*')
   .description('Any other command is not supported')
   .action((command: string) => {
     console.error(ERROR.COMMAND_DNE(command));

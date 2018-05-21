@@ -3,9 +3,9 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'child_process';
 import { getScriptURL, getFileType, getAPIFileType,
-         saveProjectId } from './../src/utils.js';
+         saveProjectId } from '../src/utils';
 import * as path from 'path';
 import * as tmp from 'tmp';
 

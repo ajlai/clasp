@@ -1,4 +1,4 @@
-import { DOT, PROJECT_NAME, getScriptURL } from './utils.js';
+import { DOT, PROJECT_NAME, getScriptURL } from './utils';
 import * as pluralize from 'pluralize';
 
 // Log messages (some logs take required params)
