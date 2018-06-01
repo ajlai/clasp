@@ -1,0 +1,5 @@
+{{!--
+overrides js signature formatting with cli signature formatting
+(no parens after function name, no commas between args)
+--}}
+{{name}}{{#params}}{{#each this}} {{name}}{{/each}}{{/params}}

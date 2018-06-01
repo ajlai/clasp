@@ -58,6 +58,7 @@ commander
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
+ * @function login
  */
 commander
   .command('login')
@@ -68,6 +69,7 @@ commander
 
 /**
  * Logs out the user by deleteing client credentials.
+ * @function logout
  */
 commander
   .command('logout')
@@ -76,6 +78,7 @@ commander
 
 /**
  * Creates a new script project.
+ * @function create
  * @param {string} [scriptTitle] An optional project title.
  * @param {string} [scriptParentId] An optional project parent Id. The Drive ID of a parent file
  *   that the created script project is bound to. This is usually the ID of a
@@ -123,6 +126,7 @@ commander
  * - That start with a .
  * - That don't have an accepted file extension
  * - That are ignored (filename matches a glob pattern in the ignore file)
+ * @function status
  */
 commander
 .command('status')
@@ -157,6 +161,8 @@ commander
 
 /**
  * Undeploys a deployment of a script.
+ * @function undeploy
+ * @param <deploymentId>
  * @example "undeploy 123"
  */
 commander
